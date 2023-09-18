@@ -194,7 +194,7 @@ protected:
   /**
    * @brief function to check if the Nav2 system is active
    */
-  void CreateActiveDiagnostic(diagnostic_updater::DiagnosticStatusWrapper & stat);
+  void CreateDiagnostic(diagnostic_updater::DiagnosticStatusWrapper & stat);
 
   // Timer thread to look at bond connections
   rclcpp::TimerBase::SharedPtr init_timer_;

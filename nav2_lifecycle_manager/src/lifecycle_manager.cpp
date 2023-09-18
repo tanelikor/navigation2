@@ -285,12 +285,12 @@ LifecycleManager::startup()
     !changeStateForAllNodes(Transition::TRANSITION_ACTIVATE))
   {
     RCLCPP_ERROR(get_logger(), "Failed to bring up all requested nodes. Aborting bringup.");
-    state_of_managed_nodes = NodeState::UNKNOWN
+    state_of_managed_nodes_ = NodeState::UNKNOWN;
     return false;
   }
   message("Managed nodes are active");
   system_active_ = true;
-  state_of_managed_nodes = NodeState::ACTIVE
+  state_of_managed_nodes_ = NodeState::ACTIVE;
   createBondTimer();
   return true;
 }
@@ -299,7 +299,7 @@ bool
 LifecycleManager::shutdown()
 {
   system_active_ = false;
-  state_of_managed_nodes = NodeState::FINALIZED
+  state_of_managed_nodes_ = NodeState::FINALIZED;
   destroyBondTimer();
 
   message("Shutting down managed nodes...");
@@ -322,13 +322,13 @@ LifecycleManager::reset(bool hard_reset)
   {
     if (!hard_reset) {
       RCLCPP_ERROR(get_logger(), "Failed to reset nodes: aborting reset");
-      state_of_managed_nodes = NodeState::UNKNOWN;
+      state_of_managed_nodes_ = NodeState::UNKNOWN;
       return false;
     }
   }
 
   message("Managed nodes have been reset");
-  state_of_managed_nodes = UNCONFIGURED;
+  state_of_managed_nodes_ = NodeState::UNCONFIGURED;
   return true;
 }
 
@@ -341,12 +341,12 @@ LifecycleManager::pause()
   message("Pausing managed nodes...");
   if (!changeStateForAllNodes(Transition::TRANSITION_DEACTIVATE)) {
     RCLCPP_ERROR(get_logger(), "Failed to pause nodes: aborting pause");
-    state_of_managed_nodes = NodeState::UNKNOWN
+    state_of_managed_nodes_ = NodeState::UNKNOWN;
     return false;
   }
 
   message("Managed nodes have been paused");
-  state_of_managed_nodes = NodeState::PAUSED
+  state_of_managed_nodes_ = NodeState::PAUSED;
   return true;
 }
 
@@ -356,13 +356,13 @@ LifecycleManager::resume()
   message("Resuming managed nodes...");
   if (!changeStateForAllNodes(Transition::TRANSITION_ACTIVATE)) {
     RCLCPP_ERROR(get_logger(), "Failed to resume nodes: aborting resume");
-    state_of_managed_nodes = NodeState::UNKNOWN
+    state_of_managed_nodes_ = NodeState::UNKNOWN;
     return false;
   }
 
   message("Managed nodes are active");
   system_active_ = true;
-  state_of_managed_nodes = NodeState::ACTIVE
+  state_of_managed_nodes_ = NodeState::ACTIVE;
   createBondTimer();
   return true;
 }
