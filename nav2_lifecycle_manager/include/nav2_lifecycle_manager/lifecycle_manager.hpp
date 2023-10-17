@@ -39,7 +39,7 @@ using namespace std::chrono_literals;  // NOLINT
 
 using nav2_msgs::srv::ManageLifecycleNodes;
 
-/// @brief Enum to for keeping track of the state of managed nodes
+/// @brief Enum for keeping track of the state of managed nodes
 enum NodeState
 {
   UNCONFIGURED,
