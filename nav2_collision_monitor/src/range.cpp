@@ -49,7 +49,6 @@ Range::~Range()
 
 void Range::configure()
 {
-  Source::configure();
   auto node = node_.lock();
   if (!node) {
     throw std::runtime_error{"Failed to lock node"};
@@ -65,17 +64,17 @@ void Range::configure()
     std::bind(&Range::dataCallback, this, std::placeholders::_1));
 }
 
-bool Range::getData(
+void Range::getData(
   const rclcpp::Time & curr_time,
   std::vector<Point> & data) const
 {
   // Ignore data from the source if it is not being published yet or
   // not being published for a long time
   if (data_ == nullptr) {
-    return false;
+    return;
   }
   if (!sourceValid(data_->header.stamp, curr_time)) {
-    return false;
+    return;
   }
 
   // Ignore data, if its range is out of scope of range sensor abilities
@@ -84,7 +83,7 @@ bool Range::getData(
       logger_,
       "[%s]: Data range %fm is out of {%f..%f} sensor span. Ignoring...",
       source_name_.c_str(), data_->range, data_->min_range, data_->max_range);
-    return false;
+    return;
   }
 
   tf2::Transform tf_transform;
@@ -97,7 +96,7 @@ bool Range::getData(
         base_frame_id_, curr_time, global_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   } else {
     // Obtaining the transform to get data from source frame to base frame without time shift
@@ -108,7 +107,7 @@ bool Range::getData(
         data_->header.frame_id, base_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   }
 
@@ -142,8 +141,6 @@ bool Range::getData(
 
   // Refill data array
   data.push_back({p_v3_b.x(), p_v3_b.y()});
-
-  return true;
 }
 
 void Range::getParameters(std::string & source_topic)

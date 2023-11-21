@@ -47,7 +47,6 @@ Scan::~Scan()
 
 void Scan::configure()
 {
-  Source::configure();
   auto node = node_.lock();
   if (!node) {
     throw std::runtime_error{"Failed to lock node"};
@@ -64,17 +63,17 @@ void Scan::configure()
     std::bind(&Scan::dataCallback, this, std::placeholders::_1));
 }
 
-bool Scan::getData(
+void Scan::getData(
   const rclcpp::Time & curr_time,
   std::vector<Point> & data) const
 {
   // Ignore data from the source if it is not being published yet or
   // not being published for a long time
   if (data_ == nullptr) {
-    return false;
+    return;
   }
   if (!sourceValid(data_->header.stamp, curr_time)) {
-    return false;
+    return;
   }
 
   tf2::Transform tf_transform;
@@ -87,7 +86,7 @@ bool Scan::getData(
         base_frame_id_, curr_time, global_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   } else {
     // Obtaining the transform to get data from source frame to base frame without time shift
@@ -98,7 +97,7 @@ bool Scan::getData(
         data_->header.frame_id, base_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   }
 
@@ -118,7 +117,6 @@ bool Scan::getData(
     }
     angle += data_->angle_increment;
   }
-  return true;
 }
 
 void Scan::dataCallback(sensor_msgs::msg::LaserScan::ConstSharedPtr msg)

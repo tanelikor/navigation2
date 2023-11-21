@@ -21,13 +21,13 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "visualization_msgs/msg/marker_array.hpp"
 
 #include "tf2/time.h"
 #include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_listener.h"
 
 #include "nav2_util/lifecycle_node.hpp"
+#include "nav2_util/robot_utils.hpp"
 #include "nav2_msgs/msg/collision_monitor_state.hpp"
 
 #include "nav2_collision_monitor/types.hpp"
@@ -48,12 +48,12 @@ class CollisionMonitor : public nav2_util::LifecycleNode
 {
 public:
   /**
-   * @brief Constructor for the nav2_collision_monitor::CollisionMonitor
+   * @brief Constructor for the nav2_collision_safery::CollisionMonitor
    * @param options Additional options to control creation of the node.
    */
   explicit CollisionMonitor(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   /**
-   * @brief Destructor for the nav2_collision_monitor::CollisionMonitor
+   * @brief Destructor for the nav2_collision_safery::CollisionMonitor
    */
   ~CollisionMonitor();
 
@@ -108,7 +108,6 @@ protected:
    * @param cmd_vel_in_topic Output name of cmd_vel_in topic
    * @param cmd_vel_out_topic Output name of cmd_vel_out topic
    * is required.
-   * @param state_topic topic name for publishing collision monitor state
    * @return True if all parameters were obtained or false in failure case
    */
   bool getParameters(
@@ -128,7 +127,7 @@ protected:
    * @brief Supporting routine creating and configuring all data sources
    * @param base_frame_id Robot base frame ID
    * @param odom_frame_id Odometry frame ID. Used as global frame to get
-   * source->base time interpolated transform.
+   * source->base time inerpolated transform.
    * @param transform_tolerance Transform tolerance
    * @param source_timeout Maximum time interval in which data is considered valid
    * @param base_shift_correction Whether to correct source data towards to base frame movement,
@@ -211,10 +210,6 @@ protected:
   /// @brief CollisionMonitor state publisher
   rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::CollisionMonitorState>::SharedPtr
     state_pub_;
-
-  /// @brief Collision points marker publisher
-  rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr
-    collision_points_marker_pub_;
 
   /// @brief Whether main routine is active
   bool process_active_;

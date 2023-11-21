@@ -49,7 +49,6 @@ PointCloud::~PointCloud()
 
 void PointCloud::configure()
 {
-  Source::configure();
   auto node = node_.lock();
   if (!node) {
     throw std::runtime_error{"Failed to lock node"};
@@ -65,17 +64,17 @@ void PointCloud::configure()
     std::bind(&PointCloud::dataCallback, this, std::placeholders::_1));
 }
 
-bool PointCloud::getData(
+void PointCloud::getData(
   const rclcpp::Time & curr_time,
   std::vector<Point> & data) const
 {
   // Ignore data from the source if it is not being published yet or
   // not published for a long time
   if (data_ == nullptr) {
-    return false;
+    return;
   }
   if (!sourceValid(data_->header.stamp, curr_time)) {
-    return false;
+    return;
   }
 
   tf2::Transform tf_transform;
@@ -88,7 +87,7 @@ bool PointCloud::getData(
         base_frame_id_, curr_time, global_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   } else {
     // Obtaining the transform to get data from source frame to base frame without time shift
@@ -99,7 +98,7 @@ bool PointCloud::getData(
         data_->header.frame_id, base_frame_id_,
         transform_tolerance_, tf_buffer_, tf_transform))
     {
-      return false;
+      return;
     }
   }
 
@@ -118,7 +117,6 @@ bool PointCloud::getData(
       data.push_back({p_v3_b.x(), p_v3_b.y()});
     }
   }
-  return true;
 }
 
 void PointCloud::getParameters(std::string & source_topic)
