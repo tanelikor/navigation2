@@ -21,6 +21,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 #include "tf2/time.h"
 #include "tf2_ros/buffer.h"
@@ -210,6 +211,10 @@ protected:
   /// @brief CollisionMonitor state publisher
   rclcpp_lifecycle::LifecyclePublisher<nav2_msgs::msg::CollisionMonitorState>::SharedPtr
     state_pub_;
+
+  /// @brief Collision points marker publisher
+  rclcpp_lifecycle::LifecyclePublisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+    collision_points_marker_pub_;
 
   /// @brief Whether main routine is active
   bool process_active_;
