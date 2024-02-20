@@ -402,13 +402,38 @@ bool Polygon::getParameters(
     try {
       // Leave it uninitialized: it will throw an inner exception if the parameter is not set
       nav2_util::declare_parameter_if_not_declared(
-        node, polygon_name_ + ".points", rclcpp::PARAMETER_STRING);
-      std::string poly_string =
-        node->get_parameter(polygon_name_ + ".points").as_string();
+              node, polygon_name_ + ".points", rclcpp::PARAMETER_DOUBLE_ARRAY);
+      std::vector<double> poly_row =
+        node->get_parameter(polygon_name_ + ".points").as_double_array();
+      // Check for points format correctness
+      if (poly_row.size() <= 6 || poly_row.size() % 2 != 0) {
+        RCLCPP_ERROR(
+          logger_,
+          "[%s]: Polygon has incorrect points description",
+          polygon_name_.c_str());
+        return false;
+      }
+
+      // Obtain polygon vertices
+      Point point;
+      bool first = true;
+      for (double val : poly_row) {
+        if (first) {
+          point.x = val;
+        } else {
+          point.y = val;
+          poly_.push_back(point);
+        }
+        first = !first;
+      }
+      return true;
+//        node, polygon_name_ + ".points", rclcpp::PARAMETER_STRING);
+//      std::string poly_string =
+//        node->get_parameter(polygon_name_ + ".points").as_string();
 
       // Do not need to proceed further, if "points" parameter is defined.
       // Static polygon will be used.
-      return getPolygonFromString(poly_string, poly_);
+//      return getPolygonFromString(poly_string, poly_);
     } catch (const rclcpp::exceptions::ParameterUninitializedException &) {
       RCLCPP_INFO(
         logger_,
@@ -542,44 +567,44 @@ inline bool Polygon::isPointInside(const Point & point) const
   return res;
 }
 
-bool Polygon::getPolygonFromString(
-  std::string & poly_string,
-  std::vector<Point> & polygon)
-{
-  std::string error;
-  std::vector<std::vector<float>> vvf = nav2_util::parseVVF(poly_string, error);
-
-  if (error != "") {
-    RCLCPP_ERROR(
-      logger_, "Error parsing polygon parameter %s: '%s'",
-      poly_string.c_str(), error.c_str());
-    return false;
-  }
-
-  // Check for minimum 4 points
-  if (vvf.size() <= 3) {
-    RCLCPP_ERROR(
-      logger_,
-      "Polygon must have at least three points.");
-    return false;
-  }
-  for (unsigned int i = 0; i < vvf.size(); i++) {
-    if (vvf[i].size() == 2) {
-      Point point;
-      point.x = vvf[i][0];
-      point.y = vvf[i][1];
-      polygon.push_back(point);
-    } else {
-      RCLCPP_ERROR(
-        logger_,
-        "Points in the polygon specification must be pairs of numbers"
-        "Found a point with %d numbers.",
-        static_cast<int>(vvf[i].size()));
-      return false;
-    }
-  }
-
-  return true;
-}
+//bool Polygon::getPolygonFromString(
+//  std::string & poly_string,
+//  std::vector<Point> & polygon)
+//{
+//  std::string error;
+//  std::vector<std::vector<float>> vvf = nav2_util::parseVVF(poly_string, error);
+//
+//  if (error != "") {
+//    RCLCPP_ERROR(
+//      logger_, "Error parsing polygon parameter %s: '%s'",
+//      poly_string.c_str(), error.c_str());
+//    return false;
+//  }
+//
+//  // Check for minimum 4 points
+//  if (vvf.size() <= 3) {
+//    RCLCPP_ERROR(
+//      logger_,
+//      "Polygon must have at least three points.");
+//    return false;
+//  }
+//  for (unsigned int i = 0; i < vvf.size(); i++) {
+//    if (vvf[i].size() == 2) {
+//      Point point;
+//      point.x = vvf[i][0];
+//      point.y = vvf[i][1];
+//      polygon.push_back(point);
+//    } else {
+//      RCLCPP_ERROR(
+//        logger_,
+//        "Points in the polygon specification must be pairs of numbers"
+//        "Found a point with %d numbers.",
+//        static_cast<int>(vvf[i].size()));
+//      return false;
+//    }
+//  }
+//
+//  return true;
+//}
 
 }  // namespace nav2_collision_monitor
