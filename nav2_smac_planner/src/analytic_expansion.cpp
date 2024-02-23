@@ -179,6 +179,8 @@ typename AnalyticExpansion<NodeT>::AnalyticExpansionNodes AnalyticExpansion<Node
 
   float d = state_space->distance(from(), to());
 
+  // A move of sqrt(2) is guaranteed to be in a new cell
+  static const float sqrt_2 = std::sqrt(2.0f);
   // If the length is too far, exit. This prevents unsafe shortcutting of paths
   // into higher cost areas far out from the goal itself, let search to the work of getting
   // close before the analytic expansion brings it home. This should never be smaller than
@@ -187,8 +189,12 @@ typename AnalyticExpansion<NodeT>::AnalyticExpansionNodes AnalyticExpansion<Node
     return AnalyticExpansionNodes();
   }
 
-  // A move of sqrt(2) is guaranteed to be in a new cell
-  static const float sqrt_2 = std::sqrt(2.0f);
+  // Distance being less than sqrt(2) will lead into num_intervals == 0 which could lead to seg fault later on.
+  // Return early to avoid pointless work and possible segmentation fault.
+  if (d < sqrt_2) {
+    return AnalyticExpansionNodes();
+  }
+
   unsigned int num_intervals = static_cast<unsigned int>(std::floor(d / sqrt_2));
 
   AnalyticExpansionNodes possible_nodes;
