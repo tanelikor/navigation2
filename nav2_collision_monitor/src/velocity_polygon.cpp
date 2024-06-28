@@ -63,9 +63,9 @@ bool VelocityPolygon::getParameters(
       // polygon points parameter
       std::vector<Point> poly;
       nav2_util::declare_parameter_if_not_declared(
-              node, polygon_name_ + ".points", rclcpp::PARAMETER_DOUBLE_ARRAY);
+              node, polygon_name_ + "." + velocity_polygon_name + ".points", rclcpp::PARAMETER_DOUBLE_ARRAY);
       std::vector<double> poly_row =
-        node->get_parameter(polygon_name_ + ".points").as_double_array();
+        node->get_parameter(polygon_name_ + "." + velocity_polygon_name + ".points").as_double_array();
       // Check for points format correctness
       if (poly_row.size() <= 6 || poly_row.size() % 2 != 0) {
         RCLCPP_ERROR(
@@ -83,17 +83,10 @@ bool VelocityPolygon::getParameters(
           point.x = val;
         } else {
           point.y = val;
-          poly_.push_back(point);
+          poly.push_back(point);
         }
         first = !first;
       }
-//        node, polygon_name_ + "." + velocity_polygon_name + ".points", rclcpp::PARAMETER_STRING);
-//      std::string poly_string =
-//        node->get_parameter(polygon_name_ + "." + velocity_polygon_name + ".points").as_string();
-//
-//      if (!getPolygonFromString(poly_string, poly)) {
-//        return false;
-//      }
 
       // linear_min param
       double linear_min;
