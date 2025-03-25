@@ -496,7 +496,7 @@ LifecycleManager::checkBondConnections()
         "CRITICAL FAILURE: SERVER %s IS DOWN after not receiving a heartbeat for %i ms."
         " Shutting down related nodes.",
         node_name.c_str(), static_cast<int>(bond_timeout_.count()));
-      reset(true);  // hard reset to transition all still active down
+      reset(false);  // hard reset to transition all still active down
       // if a server crashed, it won't get cleared due to failed transition, clear manually
       bond_map_.clear();
 
