@@ -42,7 +42,6 @@ float NodeHybrid::size_lookup = 25;
 LookupTable NodeHybrid::dist_heuristic_lookup_table;
 nav2_costmap_2d::Costmap2D * NodeHybrid::sampled_costmap = nullptr;
 std::shared_ptr<nav2_costmap_2d::Costmap2DROS> NodeHybrid::costmap_ros = nullptr;
-std::shared_ptr<nav2_costmap_2d::InflationLayer> NodeHybrid::inflation_layer = nullptr;
 
 CostmapDownsampler NodeHybrid::downsampler;
 ObstacleHeuristicQueue NodeHybrid::obstacle_heuristic_queue;
@@ -488,7 +487,6 @@ void NodeHybrid::resetObstacleHeuristic(
   // erosion of path quality after even modest smoothing. The error would be no more
   // than 0.05 * normalized cost. Since this is just a search prior, there's no loss in generality
   costmap_ros = costmap_ros_i;
-  inflation_layer = nav2_costmap_2d::InflationLayer::getInflationLayer(costmap_ros);
   sampled_costmap = costmap_ros->getCostmap();
   if (motion_table.downsample_obstacle_heuristic) {
     std::weak_ptr<nav2_util::LifecycleNode> ptr;
@@ -533,29 +531,6 @@ void NodeHybrid::resetObstacleHeuristic(
   obstacle_heuristic_lookup_table[goal_index] = -0.00001f;
 }
 
-float NodeHybrid::adjustedFootprintCost(const float & cost)
-{
-  if (!inflation_layer) {
-    return cost;
-  }
-
-  const auto layered_costmap = costmap_ros->getLayeredCostmap();
-  const float scale_factor = inflation_layer->getCostScalingFactor();
-  const float min_radius = layered_costmap->getInscribedRadius();
-  float dist_to_obj = (scale_factor * min_radius - log(cost) + log(253.0f)) / scale_factor;
-
-  // Subtract minimum radius for edge cost
-  dist_to_obj -= min_radius;
-  if (dist_to_obj < 0.0f) {
-    dist_to_obj = 0.0f;
-  }
-
-  // Compute cost at this value
-  return static_cast<float>(
-    inflation_layer->computeCost(dist_to_obj / layered_costmap->getCostmap()->getResolution()));
-}
-
-
 float NodeHybrid::getObstacleHeuristic(
   const Coordinates & node_coords,
   const Coordinates & goal_coords,
@@ -563,7 +538,6 @@ float NodeHybrid::getObstacleHeuristic(
 {
   // If already expanded, return the cost
   const unsigned int size_x = sampled_costmap->getSizeInCellsX();
-  const bool is_circular = costmap_ros->getUseRadius();
 
   // Divided by 2 due to downsampled costmap.
   unsigned int start_y, start_x;
@@ -634,13 +608,7 @@ float NodeHybrid::getObstacleHeuristic(
       if (new_idx < size_x * size_y) {
         cost = static_cast<float>(sampled_costmap->getCost(new_idx));
 
-        if (!is_circular) {
-          // Adjust cost value if using SE2 footprint checks
-          cost = adjustedFootprintCost(cost);
-          if (cost >= OCCUPIED) {
-            continue;
-          }
-        } else if (cost >= INSCRIBED) {
+        if (cost >= INSCRIBED) {
           continue;
         }
 
